@@ -24,3 +24,9 @@ no permanent modification of the original binary necessary!
 
 * Based on idead from <https://github.com/akspa0/parp-tools/tree/reconstruction/gillijimproject_refactor/src/MdxViewer/alphaFixes_dll/AlphaFixes>
 * Works by redirecting code paths related to timer handling to variants utilizing more modern and efficient approaches
+
+## Build / Requirements
+
+* Requires `MSVC` (e.g. as part of free Microsoft Visual Studio installations)
+* Set up a build command line via `vcvars32.bat` (can also use `open_vscode.bat` if you want to invoke build tools via vscode)
+* Build via `make.bat`
