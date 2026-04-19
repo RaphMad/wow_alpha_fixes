@@ -22,7 +22,8 @@ no permanent modification of the original binary necessary!
 
 ### `fix_timers.dll`
 
-* Based on idead from <https://github.com/akspa0/parp-tools/tree/reconstruction/gillijimproject_refactor/src/MdxViewer/alphaFixes_dll/AlphaFixes>
+* Based on ideas from <https://github.com/akspa0/parp-tools/tree/reconstruction/gillijimproject_refactor/src/MdxViewer/alphaFixes_dll/AlphaFixes>
+* Also from <https://github.com/hannesmann/vanillafixes/>
 * Works by redirecting code paths related to timer handling to variants utilizing more modern and efficient approaches
 
 ## Build / Requirements

@@ -3,12 +3,25 @@
 #include <psapi.h>
 #include <timeapi.h>
 
-typedef unsigned long long addr_t;
+typedef unsigned long addr_t;
 
-#define TIMEKEEPER_RVA 0x0045c100
+// OsTimeManager::TimeKeeper()
+#define TIMEKEEPER_PROC_RVA 0x0045c100
+
+// cpuTicksPerSecond
 #define CPU_TICKS_PER_SECOND_RVA 0x00cc45a8
 
+// CGxDevice::CpuFrequency()
+#define CPU_FREQUENCY_RVA 0x005951b0
+
+// frequency
+#define FREQUENCY_RVA 0x00E1324C
+
 static addr_t moduleBase;
+
+static volatile HINSTANCE hinstDll = NULL;
+static volatile DWORD64 tscFrequency = 0;
+static volatile cpuFrequencyWritten = FALSE;
 
 static addr_t GetBaseAddress() {
     // Enumerating a single module is enough, since the first module always is the executable itself.
@@ -25,12 +38,10 @@ static addr_t GetBaseAddress() {
 
 static DWORD64 CalibrateTSC() {
     HANDLE hThread = GetCurrentThread();
-    DWORD_PTR oldAffinity;
-    int oldPriority;
 
     // Save original thread settings
-    oldAffinity = SetThreadAffinityMask(hThread, 1ULL << 0);
-    oldPriority = GetThreadPriority(hThread);
+    DWORD_PTR oldAffinity = SetThreadAffinityMask(hThread, 1 << GetCurrentProcessorNumber());
+    int oldPriority = GetThreadPriority(hThread);
 
     // Boost priority
     SetThreadPriority(hThread, THREAD_PRIORITY_TIME_CRITICAL);
@@ -52,6 +63,7 @@ static DWORD64 CalibrateTSC() {
         QueryPerformanceCounter((LARGE_INTEGER*)&qpcSamples[i]);
         samples[i] = __rdtsc();
         ticks[i] = GetTickCount();
+        _mm_lfence();
 
         Sleep(100);  // 100ms between samples
     }
@@ -77,8 +89,7 @@ static DWORD64 CalibrateTSC() {
             // Check if window is within acceptable range
             int windowSize = j - i;
             int expectedTicks = windowSize * 100;  // Each sleep is 100ms
-            if (tickDelta >= expectedTicks - 50 &&
-                tickDelta <= expectedTicks + 50) {
+            if (tickDelta >= expectedTicks - 50 && tickDelta <= expectedTicks + 50) {
                 // Found good window
                 if (qpcDelta > bestQpcDelta) {
                     bestQpcDelta = qpcDelta;
@@ -96,8 +107,7 @@ static DWORD64 CalibrateTSC() {
     double tscFreq = 0;
 
     if (bestQpcDelta > 0 && qpcFreq.QuadPart > 0) {
-        tscFreq = (double)bestTscDelta * (double)qpcFreq.QuadPart /
-                  (double)bestQpcDelta;
+        tscFreq = (double)bestTscDelta * (double)qpcFreq.QuadPart / (double)bestQpcDelta;
     }
 
     // Restore settings
@@ -108,35 +118,51 @@ static DWORD64 CalibrateTSC() {
     return (DWORD64)round(tscFreq);
 }
 
-static DWORD WINAPI HookedTimeKeeper() {
-    DWORD64 g_tsc_frequency = CalibrateTSC();
+static DWORD WINAPI HookedTimeKeeperProc(LPVOID lpParameter) {
+    tscFrequency = CalibrateTSC();
 
-    // Calculate derived values
-    if (g_tsc_frequency > 0) {
-        double g_timer_to_ms = 1000.0 / (double)g_tsc_frequency;
+    DWORD64* cpuTicksPerSecondAddr = moduleBase + CPU_TICKS_PER_SECOND_RVA;
+    *cpuTicksPerSecondAddr = tscFrequency;
 
-        // Calculate offset to align with GetTickCount
-        DWORD64 currentTsc = __rdtsc();
-        DWORD currentTick = GetTickCount();
-        INT64 g_timer_offset = (INT64)currentTick - (INT64)(currentTsc * g_timer_to_ms);
+    while(!cpuFrequencyWritten) {
+		Sleep(1);
+	}
+
+    // Unload dll and remove hooks
+	FreeLibraryAndExitThread(hinstDll, 0);
+}
+
+static float WINAPI HookedCpuFrequency() {
+    // Wait for TSC calibration to complete
+    while (tscFrequency == 0) {
+        Sleep(1);
     }
 
-    // Write to global variable (CpuTicksPerSecond)
-    DWORD64* cpuTicksPerSecond = moduleBase + CPU_TICKS_PER_SECOND_RVA;
-    *cpuTicksPerSecond = g_tsc_frequency;
+    // The game assumes the TSC frequency is equal to the CPU frequency
+    float frequency = (float)tscFrequency;
 
-    return 0;
+    // Update memory location read by original function, so it will still be used when dll gets unloaded
+    float* frequencyAddr = moduleBase + FREQUENCY_RVA;
+    *frequencyAddr = frequency;
+
+    cpuFrequencyWritten = TRUE;
+
+    return frequency;
 }
 
 BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
+    hinstDll = h;
+
     switch (reason) {
         case DLL_PROCESS_ATTACH:
             if (MH_Initialize() != MH_OK) return FALSE;
 
             moduleBase = GetBaseAddress();
-            addr_t timekeeperFunc = moduleBase + TIMEKEEPER_RVA;
+            addr_t timekeeperProc = moduleBase + TIMEKEEPER_PROC_RVA;
+            addr_t cpuFrequencyFunc = moduleBase + CPU_FREQUENCY_RVA;
 
-            if (MH_CreateHook(timekeeperFunc, HookedTimeKeeper, NULL) != MH_OK) return FALSE;
+            if (MH_CreateHook(timekeeperProc, HookedTimeKeeperProc, NULL) != MH_OK) return FALSE;
+            if (MH_CreateHook(cpuFrequencyFunc, HookedCpuFrequency, NULL) != MH_OK) return FALSE;
 
             if (MH_EnableHook(MH_ALL_HOOKS) != MH_OK) return FALSE;
 
