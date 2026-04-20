@@ -6,18 +6,16 @@
 typedef unsigned long addr_t;
 
 // OsTimeManager::TimeKeeper()
-#define TIMEKEEPER_PROC_RVA 0x0045c100
+#define TIMEKEEPER_PROC 0x0045c100
 
 // cpuTicksPerSecond
-#define CPU_TICKS_PER_SECOND_RVA 0x00cc45a8
+#define CPU_TICKS_PER_SECOND 0x00cc45a8
 
 // CGxDevice::CpuFrequency()
-#define CPU_FREQUENCY_RVA 0x005951b0
+#define CPU_FREQUENCY 0x005951b0
 
 // frequency
-#define FREQUENCY_RVA 0x00E1324C
-
-static addr_t moduleBase;
+#define FREQUENCY 0x00E1324C
 
 static volatile HINSTANCE hinstDll = NULL;
 static volatile DWORD64 tscFrequency = 0;
@@ -121,7 +119,7 @@ static DWORD64 CalibrateTSC() {
 static DWORD WINAPI HookedTimeKeeperProc(LPVOID lpParameter) {
     tscFrequency = CalibrateTSC();
 
-    DWORD64* cpuTicksPerSecondAddr = moduleBase + CPU_TICKS_PER_SECOND_RVA;
+    DWORD64* cpuTicksPerSecondAddr = CPU_TICKS_PER_SECOND;
     *cpuTicksPerSecondAddr = tscFrequency;
 
     while(!cpuFrequencyWritten) {
@@ -142,7 +140,7 @@ static float WINAPI HookedCpuFrequency() {
     float frequency = (float)tscFrequency;
 
     // Update memory location read by original function, so it will still be used when dll gets unloaded
-    float* frequencyAddr = moduleBase + FREQUENCY_RVA;
+    float* frequencyAddr = FREQUENCY;
     *frequencyAddr = frequency;
 
     cpuFrequencyWritten = TRUE;
@@ -157,12 +155,8 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
         case DLL_PROCESS_ATTACH:
             if (MH_Initialize() != MH_OK) return FALSE;
 
-            moduleBase = GetBaseAddress();
-            addr_t timekeeperProc = moduleBase + TIMEKEEPER_PROC_RVA;
-            addr_t cpuFrequencyFunc = moduleBase + CPU_FREQUENCY_RVA;
-
-            if (MH_CreateHook(timekeeperProc, HookedTimeKeeperProc, NULL) != MH_OK) return FALSE;
-            if (MH_CreateHook(cpuFrequencyFunc, HookedCpuFrequency, NULL) != MH_OK) return FALSE;
+            if (MH_CreateHook(TIMEKEEPER_PROC, HookedTimeKeeperProc, NULL) != MH_OK) return FALSE;
+            if (MH_CreateHook(CPU_FREQUENCY, HookedCpuFrequency, NULL) != MH_OK) return FALSE;
 
             if (MH_EnableHook(MH_ALL_HOOKS) != MH_OK) return FALSE;
 
