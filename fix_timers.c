@@ -1,156 +1,34 @@
-#include "minhook_134\include\MinHook.h"
-#include <Windows.h>
-#include <psapi.h>
-#include <timeapi.h>
+#include "tsc\tsc.h"
 
 typedef unsigned long addr_t;
 
-// OsTimeManager::TimeKeeper()
+// OsTimeManager::TimeKeeper() - supposed to read and populate CPU_TICKS_PER_SECOND, but actually never called?
 #define TIMEKEEPER_PROC 0x0045c100
 
-// cpuTicksPerSecond
+// OsGetAsyncClocksPerSecond() - accesses and initializes CPU_TICKS_PER_SECOND, but we initialize it earlier with our calibrated value
+#define GET_ASYNC_CLOCKS_PER_SECOND 0x0045b970
+
+// cpuTicksPerSecond (DWORD64)
 #define CPU_TICKS_PER_SECOND 0x00cc45a8
 
-// CGxDevice::CpuFrequency()
-#define CPU_FREQUENCY 0x005951b0
+// CGxDevice::CpuFrequency() - accesses and initializes FREQUENCY, but we initialize it earlier with our calibrated value
+#define CPU_FREQUENCY_FUNC 0x005951b0
 
-// frequency
-#define FREQUENCY 0x00E1324C
+// frequency (float 32bit)
+#define CPU_FREQUENCY 0x00E1324C
 
-static volatile HINSTANCE hinstDll = NULL;
-static volatile DWORD64 tscFrequency = 0;
-static volatile cpuFrequencyWritten = FALSE;
-
-static DWORD64 CalibrateTSC() {
-    HANDLE hThread = GetCurrentThread();
-
-    // Save original thread settings
-    DWORD_PTR oldAffinity = SetThreadAffinityMask(hThread, 1 << GetCurrentProcessorNumber());
-    int oldPriority = GetThreadPriority(hThread);
-
-    // Boost priority
-    SetThreadPriority(hThread, THREAD_PRIORITY_TIME_CRITICAL);
-
-    // Increase timer resolution
-    timeBeginPeriod(1);
-
-    // Multiple samples for accuracy
-    DWORD64 samples[5];
-    DWORD ticks[5];
-    DWORD64 qpcSamples[5];
-    LARGE_INTEGER qpcFreq;
-    QueryPerformanceFrequency(&qpcFreq);
-
-    for (int i = 0; i < 5; i++) {
-        // Request timeslice before sampling
-        Sleep(0);
-
-        QueryPerformanceCounter((LARGE_INTEGER*)&qpcSamples[i]);
-        samples[i] = __rdtsc();
-        ticks[i] = GetTickCount();
-        _mm_lfence();
-
-        Sleep(100);  // 100ms between samples
-    }
-
-    // Find most consistent window around calibration target
-    int bestStart = 0;
-    int bestCount = 0;
-    DWORD64 bestQpcDelta = 0;
-    DWORD64 bestTscDelta = 0;
-
-    for (int i = 0; i < 5; i++) {
-        for (int j = i + 2; j <= 5; j++) {
-            DWORD64 qpcDelta = qpcSamples[j-1] - qpcSamples[i];
-            DWORD64 tscDelta;
-            if (samples[j-1] >= samples[i]) {
-                tscDelta = samples[j-1] - samples[i];
-            } else {
-                // Handle TSC wraparound
-                tscDelta = samples[i] - samples[j-1];
-            }
-            DWORD tickDelta = ticks[j-1] - ticks[i];
-
-            // Check if window is within acceptable range
-            int windowSize = j - i;
-            int expectedTicks = windowSize * 100;  // Each sleep is 100ms
-            if (tickDelta >= expectedTicks - 50 && tickDelta <= expectedTicks + 50) {
-                // Found good window
-                if (qpcDelta > bestQpcDelta) {
-                    bestQpcDelta = qpcDelta;
-                    bestTscDelta = tscDelta;
-                    bestStart = i;
-                    bestCount = j - i;
-                }
-
-                break;
-            }
-        }
-    }
-
-    // Calculate frequency using QPC as reference
-    double tscFreq = 0;
-
-    if (bestQpcDelta > 0 && qpcFreq.QuadPart > 0) {
-        tscFreq = (double)bestTscDelta * (double)qpcFreq.QuadPart / (double)bestQpcDelta;
-    }
-
-    // Restore settings
-    timeEndPeriod(1);
-    SetThreadAffinityMask(hThread, oldAffinity);
-    SetThreadPriority(hThread, oldPriority);
-
-    return (DWORD64)round(tscFreq);
-}
-
-static DWORD WINAPI HookedTimeKeeperProc(LPVOID lpParameter) {
-    tscFrequency = CalibrateTSC();
-
-    DWORD64* cpuTicksPerSecondAddr = CPU_TICKS_PER_SECOND;
-    *cpuTicksPerSecondAddr = tscFrequency;
-
-    while(!cpuFrequencyWritten) {
-		Sleep(1);
-	}
-
-    // Unload dll and remove hooks
-	FreeLibraryAndExitThread(hinstDll, 0);
-}
-
-static float WINAPI HookedCpuFrequency() {
-    // Wait for TSC calibration to complete
-    while (tscFrequency == 0) {
-        Sleep(1);
-    }
-
-    // The game assumes the TSC frequency is equal to the CPU frequency
-    float frequency = (float)tscFrequency;
-
-    // Update memory location read by original function, so it will still be used when dll gets unloaded
-    float* frequencyAddr = FREQUENCY;
-    *frequencyAddr = frequency;
-
-    cpuFrequencyWritten = TRUE;
-
-    return frequency;
-}
+volatile static DWORD64 tscCalibration;
 
 BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
-    hinstDll = h;
+    if (reason == DLL_PROCESS_ATTACH) {
+        tscCalibration = CalibrateTSC();
 
-    switch (reason) {
-        case DLL_PROCESS_ATTACH:
-            if (MH_Initialize() != MH_OK) return FALSE;
+        // Patch cpuTicksPerSecond and cpuFrequency in place (before game functions get a chance to initialize them with less accurate values).
+        DWORD64* cpuTicksPerSecondAddr = CPU_TICKS_PER_SECOND;
+        *cpuTicksPerSecondAddr = tscCalibration;
 
-            if (MH_CreateHook(TIMEKEEPER_PROC, HookedTimeKeeperProc, NULL) != MH_OK) return FALSE;
-            if (MH_CreateHook(CPU_FREQUENCY, HookedCpuFrequency, NULL) != MH_OK) return FALSE;
-
-            if (MH_EnableHook(MH_ALL_HOOKS) != MH_OK) return FALSE;
-
-            break;
-        case DLL_PROCESS_DETACH:
-            MH_DisableHook(MH_ALL_HOOKS);
-            MH_Uninitialize();
+        float* cpuFrequency = CPU_FREQUENCY;
+        *cpuFrequency = (float)tscCalibration;
     }
 
     return TRUE;
