@@ -7,7 +7,7 @@ no permanent modification of the original binary necessary!
 
 ## Usage
 
-`launcher.exe WoWClient.exe fix_display.dll fix_timers.dll`
+`launcher.exe WoWClient.exe fix_display.dll fix_timers.dll fix_misc.dll`
 
 ## Fixes
 
@@ -23,8 +23,15 @@ no permanent modification of the original binary necessary!
 ### `fix_timers.dll`
 
 * Based on ideas from <https://github.com/akspa0/parp-tools/tree/reconstruction/gillijimproject_refactor/src/MdxViewer/alphaFixes_dll/AlphaFixes>
-* Also from <https://github.com/hannesmann/vanillafixes/>
-* Works by redirecting code paths related to timer handling to variants utilizing more modern and efficient approaches
+  * Also from <https://github.com/hannesmann/vanillafixes/>
+* Works by measuring a single precise timer value on application start and storing it in the relevant places
+  * Existing code is structured in a way that it will not recalculate those values when they are != 0, so no function hooking required
+* The overall effect of this fix seems negligible
+
+## `fix_misc.dll`
+
+* Simple fixes for misc. "annoyances":
+  * Remove assertion which crashes the game when tabbing out while on the loading screen
 
 ## Build / Requirements
 
