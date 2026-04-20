@@ -1,6 +1,5 @@
+#include <Windows.h>
 #include "tsc\tsc.h"
-
-typedef unsigned long addr_t;
 
 // OsTimeManager::TimeKeeper() - supposed to read and populate CPU_TICKS_PER_SECOND, but actually never called?
 #define TIMEKEEPER_PROC 0x0045c100
