@@ -21,19 +21,6 @@ static volatile HINSTANCE hinstDll = NULL;
 static volatile DWORD64 tscFrequency = 0;
 static volatile cpuFrequencyWritten = FALSE;
 
-static addr_t GetBaseAddress() {
-    // Enumerating a single module is enough, since the first module always is the executable itself.
-    HMODULE module;
-    DWORD numModules;
-
-    if (EnumProcessModulesEx(GetCurrentProcess(), &module, sizeof(HMODULE), &numModules, LIST_MODULES_ALL)) {
-        // HMODULE actually represents the base address of a module
-        return module;
-    }
-
-    return 0;
-}
-
 static DWORD64 CalibrateTSC() {
     HANDLE hThread = GetCurrentThread();
 
