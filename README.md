@@ -28,7 +28,7 @@ no permanent modification of the original binary necessary!
   * Existing code is structured in a way that it will not recalculate those values when they are != 0, so no function hooking required
 * The overall effect of this fix seems negligible
 
-## `fix_misc.dll`
+### `fix_misc.dll`
 
 * Simple fixes for misc. "annoyances":
   * Remove assertion which crashes the game when tabbing out while on the loading screen
