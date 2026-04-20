@@ -7,7 +7,7 @@ no permanent modification of the original binary necessary!
 
 ## Usage
 
-`launcher.exe WoWClient.exe fix_display.dll fix_timers.dll fix_misc.dll`
+`launcher.exe WoWClient.exe fix_display.dll fix_timers.dll fix_misc.dll` (pick any combination of `dll` files)
 
 ## Fixes
 
