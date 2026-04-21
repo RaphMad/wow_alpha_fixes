@@ -9,10 +9,10 @@ no permanent modification of the original binary required!
 
 `launcher.exe WoWClient.exe fix_display.dll fix_misc.dll` (pick any combination of `dll` files)
 
-`Config.wtf` contains a settings preset for maximum visual clarity
+Also included is a sample `Config.wtf` contains a settings preset for maximum visual clarity:
   * You want to change `gxResolution` and `gxRefresh` to a value supported by your monitor
-  * When using a 16:9 resolution I suggest also setting `fov 110` - but generally `4:3` and `fov 90` is what tends to look best - on widescreen resolutions character models and objects will always be "stretched" in alphas early graphics engine
-  * Anti-aliasing is not yet supported ingame, but can often be forced via driver settings
+  * When using a `16:9` resolution I suggest also setting `fov 110` - but generally `4:3` and `fov 90` is what tends to look best - on widescreen resolutions character models and objects will always be "stretched" in alphas graphics engine
+  * Anti-aliasing is not yet supported ingame, but can be forced via driver settings
 
 ## Fixes
 
