@@ -30,7 +30,7 @@ Also included is a sample `Config.wtf` contains a settings preset for maximum vi
 * Based on ideas from <https://github.com/akspa0/parp-tools/tree/reconstruction/gillijimproject_refactor/src/MdxViewer/alphaFixes_dll/AlphaFixes>
   * Also from <https://github.com/hannesmann/vanillafixes/>
 * Works by measuring a single precise timer value on application start and hooking the games timer infrastructure to base its calculcations on it
-* However, the performance improvement of this fix seems negligible and it might lead to timing problems, so use at your own risc
+* However, the performance improvement of this fix seems negligible and it might lead to timing problems, so use at your own risk
 
 ### `fix_misc.dll`
 

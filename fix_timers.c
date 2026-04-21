@@ -66,10 +66,10 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
 
             // Hook timing functions to work based off tsc
             if (MH_CreateHook(OS_GET_ASYNC_TIME_MS_PRECISE, timeMsPrecise, NULL) != MH_OK) return FALSE;
+            if (MH_CreateHook(OS_GET_ASYNC_TIME_S, timeS, NULL) != MH_OK) return FALSE;
+            if (MH_CreateHook(OS_GET_ASYNC_THREAD_TIME_MS, threadTimeMs, NULL) != MH_OK) return FALSE;
 
-            // Hooking lower resolution timers has no benefit (OS_GET_ASYNC_TIME_S actually causes problems with movement)
-            //if (MH_CreateHook(OS_GET_ASYNC_TIME_S, timeS, NULL) != MH_OK) return FALSE;
-            //if (MH_CreateHook(OS_GET_ASYNC_THREAD_TIME_MS, threadTimeMs, NULL) != MH_OK) return FALSE;
+            // This function is used by movement calculations, hooking it will cause glitchy movement
             //if (MH_CreateHook(OS_GET_ASYNC_TIME_MS, timeMs, NULL) != MH_OK) return FALSE;
 
             if (MH_EnableHook(MH_ALL_HOOKS) != MH_OK) return FALSE;
