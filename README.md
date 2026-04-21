@@ -3,11 +3,11 @@
 This project provides various enhancements for the World of Warcraft `0.5.3` Alpha build.
 
 Enhancements are implemented as dlls which are loaded on application start and hook/overwrite application code -
-no permanent modification of the original binary necessary!
+no permanent modification of the original binary required!
 
 ## Usage
 
-`launcher.exe WoWClient.exe fix_display.dll fix_timers.dll fix_misc.dll` (pick any combination of `dll` files)
+`launcher.exe WoWClient.exe fix_display.dll fix_misc.dll` (pick any combination of `dll` files)
 
 ## Fixes
 
@@ -24,9 +24,8 @@ no permanent modification of the original binary necessary!
 
 * Based on ideas from <https://github.com/akspa0/parp-tools/tree/reconstruction/gillijimproject_refactor/src/MdxViewer/alphaFixes_dll/AlphaFixes>
   * Also from <https://github.com/hannesmann/vanillafixes/>
-* Works by measuring a single precise timer value on application start and storing it in the relevant places
-  * Existing code is structured in a way that it will not recalculate those values when they are != 0, so no function hooking required
-* However, the performance effect of this fix seems negligible
+* Works by measuring a single precise timer value on application start and hooking the games timer infrastructure to base its calculcations on it
+* However, the performance improvement of this fix seems negligible and it might lead to timing problems, so use at your own risc
 
 ### `fix_misc.dll`
 
