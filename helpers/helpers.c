@@ -1,6 +1,6 @@
 #include <Windows.h>
 
-void MakeWritable(LPVOID memory) {
+void MakeWritable(LPVOID memory, SIZE_T size) {
     DWORD oldProtect;
-    VirtualProtect(memory, 1024, PAGE_EXECUTE_READWRITE, &oldProtect);
+    VirtualProtect(memory, size, PAGE_EXECUTE_READWRITE, &oldProtect);
 }

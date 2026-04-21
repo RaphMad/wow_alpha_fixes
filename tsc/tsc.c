@@ -6,7 +6,7 @@
 typedef NTSTATUS (NTAPI *PNT_QUERY_TIMER_RESOLUTION)(PULONG, PULONG, PULONG);
 typedef NTSTATUS (NTAPI *PNT_SET_TIMER_RESOLUTION)(ULONG, BOOLEAN, PULONG);
 
-static BOOL IncreaseTimerResolution(ULONG maxRequestedResolution) {
+static BOOL increaseTimerResolution(ULONG maxRequestedResolution) {
 	static PNT_QUERY_TIMER_RESOLUTION fnNtQueryTimerResolution = NULL;
 	static PNT_SET_TIMER_RESOLUTION fnNtSetTimerResolution = NULL;
 
@@ -39,7 +39,7 @@ static BOOL IncreaseTimerResolution(ULONG maxRequestedResolution) {
 
 typedef BOOL (WINAPI *PSET_PROCESS_INFORMATION)(HANDLE, PROCESS_INFORMATION_CLASS, LPVOID, DWORD);
 
-static BOOL SetPowerThrottlingState(ULONG feature, BOOL enable) {
+static BOOL setPowerThrottlingState(ULONG feature, BOOL enable) {
 	static PSET_PROCESS_INFORMATION fnSetProcessInformation = NULL;
 
 	// If the SetProcessInformation function is not already loaded, attempt to load it
@@ -66,7 +66,7 @@ static BOOL SetPowerThrottlingState(ULONG feature, BOOL enable) {
 	);
 }
 
-static inline void TimeSample(PLARGE_INTEGER pQpc, PDWORD64 pTsc) {
+static inline void timeSample(PLARGE_INTEGER pQpc, PDWORD64 pTsc) {
 	// Try to request a new timeslice before sampling timestamp counters
 	Sleep(0);
 
@@ -79,11 +79,11 @@ static inline void TimeSample(PLARGE_INTEGER pQpc, PDWORD64 pTsc) {
 
 DWORD64 CalibrateTSC() {
     // Increase the process timer resolution up to a cap of 0.5 ms
-    IncreaseTimerResolution(5000);
+    increaseTimerResolution(5000);
 
     // Disable Windows 11 power throttling for the process
-    SetPowerThrottlingState(PROCESS_POWER_THROTTLING_IGNORE_TIMER_RESOLUTION, FALSE);
-    SetPowerThrottlingState(PROCESS_POWER_THROTTLING_EXECUTION_SPEED, FALSE);
+    setPowerThrottlingState(PROCESS_POWER_THROTTLING_IGNORE_TIMER_RESOLUTION, FALSE);
+    setPowerThrottlingState(PROCESS_POWER_THROTTLING_EXECUTION_SPEED, FALSE);
 
 	int oldPriority = GetThreadPriority(GetCurrentThread());
 	// Pin on current core and run with high priority
@@ -93,14 +93,14 @@ DWORD64 CalibrateTSC() {
 	// Obtain a baseline time for comparison
 	LARGE_INTEGER baselineQpc;
 	DWORD64 baselineTsc;
-	TimeSample(&baselineQpc, &baselineTsc);
+	timeSample(&baselineQpc, &baselineTsc);
 
 	Sleep(500);
 
 	// Obtain new value after sleep
 	LARGE_INTEGER diffQpc;
 	DWORD64 diffTsc;
-	TimeSample(&diffQpc, &diffTsc);
+	timeSample(&diffQpc, &diffTsc);
 
 	// Calculate the relative time spent in sleep (>= 500 ms)
 	diffQpc.QuadPart -= baselineQpc.QuadPart;

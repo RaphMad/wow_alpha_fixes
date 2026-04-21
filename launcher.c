@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <windows.h>
 
-static void exitErr(char* msg, ...) {
+static void exitErr(LPCTSTR msg, ...) {
     va_list args;
     va_start(args, msg);
     vfprintf(stderr, msg, args);
@@ -12,20 +12,20 @@ static void exitErr(char* msg, ...) {
     exit(EXIT_FAILURE);
 }
 
-static char* getLastErrorMessage() {
-	char* errorMessage = NULL;
+static LPTSTR getLastErrorMessage() {
+	LPTSTR errorMessage = NULL;
 	DWORD flags = FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM;
 
-	if (FormatMessage(flags, NULL, GetLastError(), 0, (LPTSTR)&errorMessage, 0, NULL)) {
+	if (FormatMessage(flags, NULL, GetLastError(), 0, errorMessage, 0, NULL)) {
 		return errorMessage;
 	}
 
 	return "Unknown error";
 }
 
-static void injectDll(HANDLE remoteProcess, char* dllFile) {
-    void* remoteBuffer;
-    void* kernel32_LoadLibraryA;
+static void injectDll(HANDLE remoteProcess, LPCTSTR dllFile) {
+    LPVOID remoteBuffer;
+    LPVOID kernel32_LoadLibraryA;
     HANDLE injectorRemoteThread;
 
     printf("dll file: %s\n", dllFile);

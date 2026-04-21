@@ -10,7 +10,7 @@ static DWORD PREFERRED_DISPLAY_INDEX;
 
 static EnumDisplayDevicesA_t OriginalEnumDisplayDevicesA;
 
-static void EnumerateDisplayDevices() {
+static void enumerateDisplayDevices() {
     DWORD counter = 0;
     DWORD maxWidth = 0;
 
@@ -33,7 +33,7 @@ static void EnumerateDisplayDevices() {
     MAX_DISPLAY_DEVICES = counter;
 }
 
-static BOOL WINAPI HookedEnumDisplayDevicesA(LPCSTR lpDevice, DWORD iDevNum, PDISPLAY_DEVICEA lpDisplayDevice, DWORD dwFlags)
+static BOOL WINAPI hookedEnumDisplayDevicesA(LPCSTR lpDevice, DWORD iDevNum, PDISPLAY_DEVICEA lpDisplayDevice, DWORD dwFlags)
 {
     if (iDevNum < MAX_DISPLAY_DEVICES) {
         return OriginalEnumDisplayDevicesA(lpDevice, PREFERRED_DISPLAY_INDEX, lpDisplayDevice, dwFlags);
@@ -47,9 +47,9 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
         case DLL_PROCESS_ATTACH:
             if (MH_Initialize() != MH_OK) return FALSE;
 
-            EnumerateDisplayDevices();
+            enumerateDisplayDevices();
 
-            if (MH_CreateHookApi(L"user32", "EnumDisplayDevicesA", &HookedEnumDisplayDevicesA, &OriginalEnumDisplayDevicesA) != MH_OK) return FALSE;
+            if (MH_CreateHookApi(L"user32", "EnumDisplayDevicesA", &hookedEnumDisplayDevicesA, &OriginalEnumDisplayDevicesA) != MH_OK) return FALSE;
             if (MH_EnableHook(MH_ALL_HOOKS) != MH_OK) return FALSE;
 
             break;

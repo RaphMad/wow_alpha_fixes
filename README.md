@@ -26,7 +26,7 @@ no permanent modification of the original binary necessary!
   * Also from <https://github.com/hannesmann/vanillafixes/>
 * Works by measuring a single precise timer value on application start and storing it in the relevant places
   * Existing code is structured in a way that it will not recalculate those values when they are != 0, so no function hooking required
-* The overall effect of this fix seems negligible
+* However, the performance effect of this fix seems negligible
 
 ### `fix_misc.dll`
 

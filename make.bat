@@ -4,7 +4,7 @@ if not "%1" == "clean" (
     cd _out
     cl ..\launcher.c
     cl ..\fix_display.c ..\minhook_134\lib\libMinHook.x86.lib User32.lib /LD
-    cl ..\fix_timers.c ..\tsc\tsc.c Winmm.lib /LD
+    cl ..\fix_timers.c ..\minhook_134\lib\libMinHook.x86.lib ..\tsc\tsc.c Winmm.lib /LD
     cl ..\fix_misc.c ..\helpers\helpers.c /LD
     cd ..
 ) else (
