@@ -9,6 +9,11 @@ no permanent modification of the original binary required!
 
 `launcher.exe WoWClient.exe fix_display.dll fix_misc.dll` (pick any combination of `dll` files)
 
+`Config.wtf` contains a settings preset for maximum visual clarity
+  * You want to change `gxResolution` and `gxRefresh` to a value supported by your monitor
+  * When using a 16:9 resolution I suggest also setting `fov 110` - but generally `4:3` and `fov 90` is what tends to look best - on widescreen resolutions character models and objects will always be "stretched" in alphas early graphics engine
+  * Anti-aliasing is not yet supported ingame, but can often be forced via driver settings
+
 ## Fixes
 
 ### `fix_display.dll`
@@ -17,8 +22,8 @@ no permanent modification of the original binary required!
 * Fixes issues related to multiple connected monitors
 * Unlike the original project, does not require configuration
 * It will hook the Windows API function `EnumDisplayDevicesA`, and modify it to always the return the biggest monitor as the first one to solve the following issue:
-  * On modern Windows versions, `EnumDisplayDevicesA` can return monitors in different order after reboots
-  * Alpha WoW only checks the first monitor to verify resolutions
+  * Alpha WoW only checks the first monitor to verify the configured resolution
+  * But on modern Windows versions, `EnumDisplayDevicesA` can return monitors in different order between reboots
 
 ### `fix_timers.dll`
 
@@ -30,7 +35,7 @@ no permanent modification of the original binary required!
 ### `fix_misc.dll`
 
 * Simple fixes for misc. "annoyances":
-  * Remove assertion which crashes the game when tabbing out while on the loading screen
+  * Remove assertion which crashes the game when tabbing out of fullscreen while in a loading screen
 
 ## Build / Requirements
 
