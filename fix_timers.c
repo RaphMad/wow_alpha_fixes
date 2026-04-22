@@ -8,11 +8,12 @@
 // OsGetAsyncClocksPerSecond() - accesses and initializes CPU_TICKS_PER_SECOND, but we initialize it earlier with our calibrated value
 #define OS_GET_ASYNC_CLOCKS_PER_SECOND 0x0045b970
 
-// OsGetAsyncThreadTimeMs(), OsGetAsyncTimeMs(), OsGetAsyncTimeMsPrecise() - will all be patched to work based on our calibrated value and rdtsc()
+// OsGet* functions - will all be hooked to work based on our calibrated value and rdtsc()
 #define OS_GET_ASYNC_THREAD_TIME_MS 0x0045bd20
 #define OS_GET_ASYNC_TIME_MS 0x0045bab0
 #define OS_GET_ASYNC_TIME_MS_PRECISE 0x0045bac0
 #define OS_GET_ASYNC_TIME_S 0x0045bb40
+#define OS_GET_TIME 0x0045bd30
 
 // cpuTicksPerSecond (DWORD64)
 #define CPU_TICKS_PER_SECOND 0x00cc45a8
@@ -23,7 +24,10 @@
 // frequency (float 32bit)
 #define CPU_FREQUENCY 0x00E1324C
 
+#define GET_SPEED 0x004ca270
+
 volatile static DWORD64 tscCalibration;
+volatile static int tscToTickCountMs;
 volatile static float scaleTscToMs;
 
 static unsigned int dummyTimeKeeper() {
@@ -31,19 +35,23 @@ static unsigned int dummyTimeKeeper() {
 }
 
 static unsigned long long threadTimeMs() {
-    return (unsigned long long)(__rdtsc() * scaleTscToMs);
+    return (unsigned long long)((__rdtsc() * scaleTscToMs) + tscToTickCountMs);
 }
 
 static unsigned long timeMs() {
-    return (unsigned long)(__rdtsc() * scaleTscToMs);
+    return (unsigned long)((__rdtsc() * scaleTscToMs) + tscToTickCountMs);
 }
 
 static unsigned long timeMsPrecise() {
-    return (unsigned long)(__rdtsc() * scaleTscToMs);
+    return (unsigned long)((__rdtsc() * scaleTscToMs) + tscToTickCountMs);
 }
 
-static float timeS() {
-    return (float)(__rdtsc() / tscCalibration);
+static float timeSFloat() {
+    return (float)((__rdtsc() / tscCalibration + tscToTickCountMs / 1000));
+}
+
+static DWORD timeS() {
+    return (DWORD)((__rdtsc() / tscCalibration + tscToTickCountMs / 1000));
 }
 
 BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
@@ -54,6 +62,9 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
             tscCalibration = CalibrateTSC();
             scaleTscToMs = 1000.0 / (float)tscCalibration;
 
+            // This offset is used to better align __rdtsc() with unpatched codepaths that still use GetTickCount()
+            tscToTickCountMs = GetTickCount() - (__rdtsc() * scaleTscToMs);
+
             // Patch cpuTicksPerSecond and cpuFrequency in place (before game functions get a chance to initialize them with less accurate values).
             DWORD64* cpuTicksPerSecondAddr = CPU_TICKS_PER_SECOND;
             *cpuTicksPerSecondAddr = tscCalibration;
@@ -61,16 +72,15 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
             float* cpuFrequency = CPU_FREQUENCY;
             *cpuFrequency = (float)tscCalibration;
 
-            // Prevent timekeeper from interferring with our changes
+            // Prevent timekeeper from interfering with our changes
             if (MH_CreateHook(TIMEKEEPER_PROC, dummyTimeKeeper, NULL) != MH_OK) return FALSE;
 
             // Hook timing functions to work based off tsc
             if (MH_CreateHook(OS_GET_ASYNC_TIME_MS_PRECISE, timeMsPrecise, NULL) != MH_OK) return FALSE;
-            if (MH_CreateHook(OS_GET_ASYNC_TIME_S, timeS, NULL) != MH_OK) return FALSE;
+            if (MH_CreateHook(OS_GET_ASYNC_TIME_S, timeSFloat, NULL) != MH_OK) return FALSE;
             if (MH_CreateHook(OS_GET_ASYNC_THREAD_TIME_MS, threadTimeMs, NULL) != MH_OK) return FALSE;
-
-            // This function is used by movement calculations, hooking it will cause glitchy movement
-            //if (MH_CreateHook(OS_GET_ASYNC_TIME_MS, timeMs, NULL) != MH_OK) return FALSE;
+            if (MH_CreateHook(OS_GET_ASYNC_TIME_MS, timeMs, NULL) != MH_OK) return FALSE;
+            if (MH_CreateHook(OS_GET_TIME, timeS, NULL) != MH_OK) return FALSE;
 
             if (MH_EnableHook(MH_ALL_HOOKS) != MH_OK) return FALSE;
 

@@ -1,7 +1,7 @@
 #include <Windows.h>
 #include "helpers\helpers.h"
 
-// CGxDeviceOpenGl::CapsWindowSizeInScreenCoords(), place inside which checks for screen coordinates
+// CGxDeviceOpenGl::CapsWindowSizeInScreenCoords(), address of the jmp after checks for screen coordinates
 #define SCREEN_COORDS_CHECK 0x0059b1b9
 
 BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
