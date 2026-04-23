@@ -20,6 +20,7 @@ A sample `Config.wtf` is also included, containing a settings preset for maximum
   `opengl` usually performs significantly better on modern machines).
 * Anti-aliasing is not exposed through the in-game settings, but it can be forced externally
   at the driver level.
+* `gxVSync` can be set back to `1` if you experience heavy tearing (I have it set to off because my GPU/monitor setup allows to run `gsync`)
 
 ## Fixes
 

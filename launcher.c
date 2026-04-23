@@ -73,5 +73,5 @@ int main(int argc, char** argv) {
     CloseHandle(processInfo.hProcess);
 	CloseHandle(processInfo.hThread);
 
-    return 0;
+    return EXIT_SUCCESS;
 }

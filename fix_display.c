@@ -33,8 +33,7 @@ static void enumerateDisplayDevices() {
     MAX_DISPLAY_DEVICES = counter;
 }
 
-static BOOL WINAPI hookedEnumDisplayDevicesA(LPCSTR lpDevice, DWORD iDevNum, PDISPLAY_DEVICEA lpDisplayDevice, DWORD dwFlags)
-{
+static BOOL WINAPI hookedEnumDisplayDevicesA(LPCSTR lpDevice, DWORD iDevNum, PDISPLAY_DEVICEA lpDisplayDevice, DWORD dwFlags) {
     if (iDevNum < MAX_DISPLAY_DEVICES) {
         return originalEnumDisplayDevicesA(lpDevice, PREFERRED_DISPLAY_INDEX, lpDisplayDevice, dwFlags);
     }
