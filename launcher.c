@@ -9,6 +9,8 @@ static void exitErr(LPCTSTR msg, ...) {
     vfprintf(stderr, msg, args);
     va_end(args);
 
+    fprintf(stderr, "\nUsage: launcher.exe WoWClient.exe <fix1.dll fix2.dll ...>");
+
     exit(EXIT_FAILURE);
 }
 

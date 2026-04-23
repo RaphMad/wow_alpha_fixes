@@ -7,7 +7,7 @@ overwrite application code — no permanent modification of the original binary 
 
 ## Usage
 
-`launcher.exe WoWClient.exe fix_display.dll fix_timers.dll fix_misc.dll`
+`launcher.exe WoWClient.exe fix_display.dll fix_timers.dll fix_misc.dll enter_world_autoexec.dll`
 (pick any combination of the `.dll` files)
 
 A sample `Config.wtf` is also included, containing a settings preset for maximum visual clarity:
@@ -23,6 +23,13 @@ A sample `Config.wtf` is also included, containing a settings preset for maximum
 * `gxVSync` can be set back to `1` if you experience heavy tearing (I have it set to off because my GPU/monitor setup allows to run `gsync`)
 
 ## Fixes
+
+### `enter_world_autoexec.dll`
+
+* Will execute console commands in `WTF\autoexec.wtf` after entering the game world
+* This is useful for automating settings like `scaleui 0.8` or `fog 0`that are only
+  accessible via the console and only take effect when executed after entering the world
+* One command per line
 
 ### `fix_display.dll`
 
