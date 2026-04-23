@@ -6,7 +6,7 @@
 
 BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
     if (reason == DLL_PROCESS_ATTACH) {
-        // This fixes an assertion crash when "tabbing out" while on the loading screen.
+        // This fixes an assertion crash when "tabbing out" while on a full screen loading screen.
         // Simply binary patch from `0x74`/`JZ` to `0xEB`/`JMP`
         BYTE* screenCoordsCheck = SCREEN_COORDS_CHECK;
         MakeWritable(screenCoordsCheck, sizeof(BYTE));

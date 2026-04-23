@@ -47,7 +47,7 @@ static void injectDll(HANDLE remoteProcess, LPCTSTR dllFile) {
     printf("Found kernel32.dll!LoadLibraryA() at address %p\n", kernel32_LoadLibraryA);
 
     if (!(injectorRemoteThread = CreateRemoteThread(remoteProcess, NULL, 0, kernel32_LoadLibraryA, remoteBuffer, 0, NULL)))
-    exitErr("Could not create remote thread");
+        exitErr("Could not create remote thread");
 
     WaitForSingleObject(injectorRemoteThread, INFINITE);
     puts("\nSUCCESFULLY INJECTED DLL!");
@@ -58,7 +58,7 @@ static void injectDll(HANDLE remoteProcess, LPCTSTR dllFile) {
 
 int main(int argc, char** argv) {
     if (argc == 1)
-        exitErr("Usage: %s <targetExe> <dll1> <dll2> ...", argv[0]);
+        exitErr("");
 
     STARTUPINFO startupInfo = {0};
     PROCESS_INFORMATION processInfo;
