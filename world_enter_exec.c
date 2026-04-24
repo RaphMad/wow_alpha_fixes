@@ -5,7 +5,7 @@
 #define CONSOLE_COMMAND_EXECUTE 0x0062cef0
 #define CG_GAMEUI_ENTER_WORLD 0x004e65f0
 
-volatile static FILE *autoExecFile;
+volatile static FILE *worldEnterExecFile;
 static char line[256];
 
 static void(__fastcall *consoleCommandExecute)(char*, int) = CONSOLE_COMMAND_EXECUTE;
@@ -21,7 +21,7 @@ static void enterWorld() {
     origEnterWorld();
 
     // Execute commands line by line
-    while (fgets(line, sizeof(line), autoExecFile) != NULL) {
+    while (fgets(line, sizeof(line), worldEnterExecFile) != NULL) {
         // Remove trailing newlines
         line[strcspn(line, "\r\n")] = 0x0;
 
@@ -31,15 +31,15 @@ static void enterWorld() {
     }
 
     // Reset cursor to start of file for subsequent calls
-    rewind(autoExecFile);
+    rewind(worldEnterExecFile);
 }
 
 BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
     switch (reason) {
         case DLL_PROCESS_ATTACH:
-            autoExecFile = fopen("WTF\\autoexec.wtf", "r");
+            worldEnterExecFile = fopen("WTF\\worldenterexec.wtf", "r");
 
-            if (autoExecFile) {
+            if (worldEnterExecFile) {
                 if (MH_Initialize() != MH_OK) return FALSE;
 
                 if (MH_CreateHook(CG_GAMEUI_ENTER_WORLD, enterWorld, &origEnterWorld) != MH_OK) return FALSE;
@@ -48,8 +48,8 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
 
             break;
         case DLL_PROCESS_DETACH:
-            if (autoExecFile) {
-                fclose(autoExecFile);
+            if (worldEnterExecFile) {
+                fclose(worldEnterExecFile);
                 MH_DisableHook(MH_ALL_HOOKS);
                 MH_Uninitialize();
             }
