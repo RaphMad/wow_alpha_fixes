@@ -67,6 +67,7 @@ Simple fixes for miscellaneous annoyances:
 
 * Removes an assertion that crashes the game when tabbing out of fullscreen during a loading
   screen.
+* Prevent spurious game hang on exit
 
 ## Build / Requirements
 
