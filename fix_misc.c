@@ -4,8 +4,8 @@
 // CGxDeviceOpenGl::CapsWindowSizeInScreenCoords(), address of the jmp after checks for screen coordinates
 #define SCREEN_COORDS_CHECK 0x0059b1b9
 
-// call to SoundFileCache::Shutdown on game exit (5 bytes)
-#define SOUND_FILE_CACHE_SHUTDOWN 0x007b52c7
+// Calls to _FSOUND_Close and SoundFileCache::Shutdown on game exit (2x 5 bytes)
+#define SOUND_FILE_CACHE_SHUTDOWN 0x007b52c2
 
 BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
     if (reason == DLL_PROCESS_ATTACH) {
@@ -17,8 +17,8 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
 
         // Shutting down the soundfile cache will sometimes get stuck when closing the game.
         // This prevents a proper exit and requires to kill the game via taskmgr.
-        // Simply overwrite call to shutdown with nops.
-        BYTE nops[5] = { 0x90, 0x90, 0x90, 0x90, 0x90 };
+        // Overwrite call to shutdown with nops.
+        BYTE nops[10] = { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 };
         MakeWritable(SOUND_FILE_CACHE_SHUTDOWN, sizeof(nops));
         memcpy(SOUND_FILE_CACHE_SHUTDOWN, nops, sizeof(nops));
     }
