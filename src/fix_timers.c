@@ -1,6 +1,6 @@
 #include <Windows.h>
-#include "tsc\tsc.h"
-#include "minhook_134\include\MinHook.h"
+#include "..\libs\tsc\tsc.h"
+#include "..\libs\minhook_134\include\MinHook.h"
 
 // OsTimeManager::TimeKeeper() - supposed to read and populate CPU_TICKS_PER_SECOND, but actually never called?
 #define TIMEKEEPER_PROC 0x0045c100

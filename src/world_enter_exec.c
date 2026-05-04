@@ -1,5 +1,5 @@
 #include <Windows.h>
-#include "minhook_134\include\MinHook.h"
+#include "..\libs\minhook_134\include\MinHook.h"
 #include <stdio.h>
 
 #define CONSOLE_COMMAND_EXECUTE 0x0062cef0

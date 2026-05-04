@@ -1,4 +1,4 @@
-#include "minhook_134\include\MinHook.h"
+#include "..\libs\minhook_134\include\MinHook.h"
 #include <WinUser.h>
 #include <Windows.h>
 
