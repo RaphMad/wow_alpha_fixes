@@ -10,18 +10,6 @@ overwrite application code — no permanent modification of the original binary 
 `launcher.exe WoWClient.exe fix_display.dll fix_timers.dll fix_misc.dll world_enter_exec.dll`
 (pick any combination of the `.dll` files)
 
-A sample `Config.wtf` is also included, containing a settings preset for maximum visual clarity:
-
-* Change `gxResolution` and `gxRefresh` to values supported by your monitor.
-* When using a `16:9` resolution I also suggest setting `fov 110` — but generally `4:3` with
-  `fov 90` tends to look best. On widescreen resolutions, character models and objects will
-  always appear "stretched" in Alpha's graphics engine.
-* If you encounter poor performance, try toggling between `opengl` and `direct3d` (though
-  `opengl` usually performs significantly better on modern machines).
-* Anti-aliasing is not exposed through the in-game settings, but it can be forced externally
-  at the driver level.
-* `gxVSync` can be set back to `1` if you experience heavy tearing (I have it set to off because my GPU/monitor setup allows to run `gsync`)
-
 ## Fixes
 
 ### `world_enter_exec.dll`
@@ -75,3 +63,18 @@ Simple fixes for miscellaneous annoyances:
 * Set up a build command-line environment via `vcvars32.bat` (or use `open_vscode.bat` if you
   prefer to invoke the build tools from VS Code).
 * Then build via `make.bat`.
+
+## Config / `WTF`
+
+A sample `Config.wtf` is also included, containing a settings preset for maximum visual clarity:
+
+* Change `gxResolution` and `gxRefresh` to values supported by your monitor.
+* When using a `16:9` resolution I also suggest setting `fov 110` — but generally `4:3` with
+  `fov 90` tends to look best. On widescreen resolutions, character models and objects will
+  always appear "stretched" in Alpha's graphics engine.
+* If you encounter poor performance, try toggling between `opengl` and `direct3d` (though
+  `opengl` usually performs significantly better on modern machines).
+* Anti-aliasing is not exposed through the in-game settings, but it can be forced externally
+  at the driver level.
+* `gxVSync` can be set back to `1` if you experience heavy tearing (I have it set to off because my GPU/monitor setup allows to run `gsync`)
+* For `worldenterexec.wtf`, see fixes above
