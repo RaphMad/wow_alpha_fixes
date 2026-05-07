@@ -54,7 +54,8 @@ Simple fixes for miscellaneous annoyances:
 
 ## Config / `WTF`
 
-A sample `Config.wtf` is also included, containing a settings preset for maximum visual clarity:
+A sample `Config.wtf` is also included, containing a settings preset for maximum visual clarity.
+Some settings are hardware-dependent or based on personal preference, especially the following ones:
 
 * Change `gxResolution` and `gxRefresh` to values supported by your monitor.
 * When using a `16:9` resolution I also suggest setting `fov 110` — but generally `4:3` with `fov 90` tends to look best. On widescreen resolutions,
