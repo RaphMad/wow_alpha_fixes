@@ -7,6 +7,9 @@
 // Calls to _FSOUND_Close and SoundFileCache::Shutdown on game exit (2x 5 bytes)
 #define SOUND_FILE_CACHE_SHUTDOWN 0x007b52c2
 
+// Call to "Player_C_AppFocusMovementHandler" in "ClientFocus" event handler (5 bytes)
+#define STOP_MOVE_ON_UNFOCUS 0x00401f12
+
 BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
     if (reason == DLL_PROCESS_ATTACH) {
         // This fixes an assertion crash when "tabbing out" while on a full screen loading screen.
@@ -21,6 +24,11 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
         BYTE nops[10] = { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 };
         MakeWritable(SOUND_FILE_CACHE_SHUTDOWN, sizeof(nops));
         memcpy(SOUND_FILE_CACHE_SHUTDOWN, nops, sizeof(nops));
+
+        // Do not stop movement on focus loss. This is mainly to keep supporting autorun when switching windows,
+        // but also has the negative side-effect of movement continuing if movement keys are held down on unfocus.
+        MakeWritable(STOP_MOVE_ON_UNFOCUS, 5 * sizeof(BYTE));
+        memcpy(STOP_MOVE_ON_UNFOCUS, nops, 5 * sizeof(BYTE));
     }
 
     return TRUE;

@@ -33,6 +33,7 @@ Simple fixes for miscellaneous annoyances:
 
 * Removes an assertion that crashes the game when tabbing out of fullscreen during a loading screen.
 * Prevent game hang on exit.
+* Continue autorun when losing window focus.
 
 ### `fix_timers.dll`
 
