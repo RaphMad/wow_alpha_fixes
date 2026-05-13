@@ -7,6 +7,7 @@ if not "%1" == "clean" (
     cl ..\src\fix_timers.c ..\libs\minhook_134\lib\libMinHook.x86.lib ..\libs\tsc\tsc.c Winmm.lib /LD
     cl ..\src\fix_misc.c ..\src\helpers\helpers.c /LD
     cl ..\src\world_enter_exec.c ..\libs\minhook_134\lib\libMinHook.x86.lib /LD
+    cl ..\src\sound_in_bg.c ..\src\helpers\helpers.c /LD
     cd ..
 ) else (
     del /Q /S _out\*

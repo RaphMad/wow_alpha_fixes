@@ -35,6 +35,13 @@ Simple fixes for miscellaneous annoyances:
 * Prevent game hang on exit.
 * Continue autorun when losing window focus.
 
+### `sound_in_bg.dll`
+
+Continue playing sounds when window is in background.
+
+* Implemented as a separate DLL for being able to use it independently of the more general misc fixes.
+* Based on a view distance script provided by user "Teri" on the "Alpha Project" Discord
+
 ### `fix_timers.dll`
 
 * Based on ideas from <https://github.com/akspa0/parp-tools/tree/reconstruction/gillijimproject_refactor/src/MdxViewer/alphaFixes_dll/AlphaFixes>
