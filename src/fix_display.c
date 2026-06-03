@@ -48,7 +48,7 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
 
             enumerateDisplayDevices();
 
-            if (MH_CreateHookApi(L"user32", "EnumDisplayDevicesA", &hookedEnumDisplayDevicesA, &originalEnumDisplayDevicesA) != MH_OK) return FALSE;
+            if (MH_CreateHookApi(L"user32", "EnumDisplayDevicesA", hookedEnumDisplayDevicesA, &originalEnumDisplayDevicesA) != MH_OK) return FALSE;
             if (MH_EnableHook(MH_ALL_HOOKS) != MH_OK) return FALSE;
 
             break;
